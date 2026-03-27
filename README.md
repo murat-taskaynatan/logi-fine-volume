@@ -49,7 +49,7 @@ Without a listener:
 
 - the shortcut is just an unused key combo
 - macOS treats it like an unhandled shortcut
-- you often get the macOS alert sound
+- you often hear a beep
 - volume does not change
 
 So the keystroke assignment is only half of the solution. This repo provides the other half: the small background helper that listens for the shortcut and then changes the volume directly.
