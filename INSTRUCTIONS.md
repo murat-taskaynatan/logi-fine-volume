@@ -8,39 +8,39 @@
 ./scripts/build_apps.sh
 ```
 
-2. Copy them to `/Applications`:
+2. Install the hotkey helper:
 
 ```sh
-cp -R "dist/Logi Fine Volume Down.app" /Applications/
-cp -R "dist/Logi Fine Volume Up.app" /Applications/
+cp -R "dist/Logi Fine Volume Hotkeys.app" "$HOME/Applications/"
+mkdir -p "$HOME/Library/LaunchAgents"
+cp "dist/com.murat-taskaynatan.logi-fine-volume.hotkeys.plist" "$HOME/Library/LaunchAgents/"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.murat-taskaynatan.logi-fine-volume.hotkeys.plist"
+launchctl kickstart -k "gui/$(id -u)/com.murat-taskaynatan.logi-fine-volume.hotkeys"
 ```
 
 3. Open Logi Options+.
 4. Select your Logitech keyboard.
-5. Change the `Volume Down` button action to launch `Logi Fine Volume Down.app`.
-6. Change the `Volume Up` button action to launch `Logi Fine Volume Up.app`.
+5. Change the `Volume Down` button action to `Keystroke Assignment`.
+6. Record `Control + Option + Command + J`.
+7. Change the `Volume Up` button action to `Keystroke Assignment`.
+8. Record `Control + Option + Command + K`.
 
-## What the apps do
+## What the helper does
 
-- `Logi Fine Volume Down.app` lowers output volume by `2`
-- `Logi Fine Volume Up.app` raises output volume by `2`
+- `Control + Option + Command + J` lowers output volume by the configured step
+- `Control + Option + Command + K` raises output volume by the configured step
 - volume is clamped between `0` and `100`
-- the apps unmute output when adjusting volume
-- the generated apps are background-only to reduce frontmost-window flicker
-- the apps show a small custom volume HUD because the built-in macOS media overlay is not available through this workaround
+- the helper unmutes output when adjusting volume
+- the helper shows a small custom volume HUD because the built-in macOS media overlay is not available through this workaround
+- the helper runs at login through a user LaunchAgent
 
 ## Change the amount
 
 Edit:
 
-- [fine_volume_down.applescript](src/fine_volume_down.applescript)
-- [fine_volume_up.applescript](src/fine_volume_up.applescript)
+- [build_apps.sh](scripts/build_apps.sh)
 
-Change:
-
-```applescript
-set step to 2
-```
+Change `STEP_SIZE`.
 
 Then rebuild:
 
@@ -50,7 +50,7 @@ Then rebuild:
 
 ## Troubleshooting
 
-- If Logi Options+ does not show the generated apps, use the copies in `/Applications`.
-- If a key beeps, it is probably still assigned to a keystroke shortcut instead of an application action.
+- If a key beeps, the hotkey helper is not running or the button is assigned to the wrong keystroke.
 - If the volume changes by the normal large step, the key is still mapped to Logitech's default media control.
-- If the active window blinks, replace older generated apps with a fresh build from this version of the repo.
+- If nothing happens, open `~/Applications/Logi Fine Volume Hotkeys.app` manually once and try again.
+- If you change `STEP_SIZE`, rebuild and reinstall both the app and the LaunchAgent plist.

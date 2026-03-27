@@ -2,12 +2,13 @@
 
 Fine-grained macOS volume control for Logitech keyboards using Logi Options+.
 
-This project builds two tiny macOS helper apps:
+This project builds three tiny macOS helper apps:
 
 - `Logi Fine Volume Down.app`
 - `Logi Fine Volume Up.app`
+- `Logi Fine Volume Hotkeys.app`
 
-Each app changes the system output volume by an exact step and shows a small custom HUD. This avoids relying on Logitech media keys being intercepted correctly by Karabiner.
+The recommended path is the hotkey helper. It runs in the background, listens for two Logi-assigned keystrokes, changes the system output volume by an exact step, and shows a small custom HUD.
 
 ## Why this exists
 
@@ -17,14 +18,16 @@ Some Logitech keyboards on macOS, including MX-series devices, send media keys t
 - Karabiner remaps may not trigger
 - custom shortcut fallbacks may beep instead of being handled
 
-This repo avoids that path by letting Logi Options+ launch small apps directly.
+This repo avoids that path by using a local background helper instead of Logitech's normal media-key flow.
 
-The generated apps are background-only bundles. They do not use the AppleScript applet runtime, which helps avoid the visible blink/focus disturbance that can happen when launching hidden AppleScript apps repeatedly.
+The generated helper apps are native Swift bundles. They do not use the AppleScript applet runtime, which helps avoid the visible blink and focus disturbance that can happen when launching hidden AppleScript apps repeatedly.
 
 ## Repo layout
 
-- `src/fine_volume_down.applescript`
-- `src/fine_volume_up.applescript`
+- `src/volume_common.swift`
+- `src/volume_runner.swift`
+- `src/volume_hotkeys.swift`
+- `src/volume_hud.swift`
 - `scripts/build_apps.sh`
 - `INSTRUCTIONS.md`
 
@@ -43,60 +46,62 @@ Run:
 ./scripts/build_apps.sh
 ```
 
-The generated apps will be written to:
+The generated output will be written to:
 
 ```text
 dist/Logi Fine Volume Down.app
 dist/Logi Fine Volume Up.app
+dist/Logi Fine Volume Hotkeys.app
+dist/com.murat-taskaynatan.logi-fine-volume.hotkeys.plist
 ```
 
 Each generated app contains:
 
-- an AppleScript that sets the new exact volume
+- a native binary that sets the new exact volume
 - a small background HUD binary that displays the current volume percentage
 
 ## Install
 
-After building, either:
+## Install
 
-1. Leave the apps in `dist/` and select them directly from Logi Options+, or
-2. Copy them to `/Applications` for easier browsing in app pickers.
-
-Example:
+Recommended install:
 
 ```sh
-cp -R "dist/Logi Fine Volume Down.app" /Applications/
-cp -R "dist/Logi Fine Volume Up.app" /Applications/
+cp -R "dist/Logi Fine Volume Hotkeys.app" "$HOME/Applications/"
+mkdir -p "$HOME/Library/LaunchAgents"
+cp "dist/com.murat-taskaynatan.logi-fine-volume.hotkeys.plist" "$HOME/Library/LaunchAgents/"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.murat-taskaynatan.logi-fine-volume.hotkeys.plist"
+launchctl kickstart -k "gui/$(id -u)/com.murat-taskaynatan.logi-fine-volume.hotkeys"
 ```
+
+Optional fallback:
+
+```sh
+cp -R "dist/Logi Fine Volume Down.app" "$HOME/Applications/"
+cp -R "dist/Logi Fine Volume Up.app" "$HOME/Applications/"
+```
+
+The fallback app-launch path still exists for manual testing, but the hotkey helper is the recommended setup because it avoids the Logi Smart Actions instability where both buttons can collapse onto the same app after some uptime.
 
 ## Configure Logi Options+
 
 1. Open Logi Options+.
 2. Select your Logitech keyboard.
 3. Reassign the `Volume Down` key.
-4. Choose an action that launches an application.
-5. Select `Logi Fine Volume Down.app`.
+4. Choose `Keystroke Assignment`.
+5. Record `Control + Option + Command + J`.
 6. Reassign the `Volume Up` key.
-7. Select `Logi Fine Volume Up.app`.
+7. Record `Control + Option + Command + K`.
 
-Depending on your version of Logi Options+, this may appear as:
+The hotkey helper listens for those shortcuts globally and adjusts volume in exact steps.
 
-- `Smart Actions`
-- `Application`
-- `Open application`
+If you still want the old app-launch path, assign the down and up apps directly instead, but it is less reliable over time.
 
 ## Change the step size
 
-Both scripts use:
+Edit `STEP_SIZE` in:
 
-```applescript
-set step to 2
-```
-
-Change that value in:
-
-- `src/fine_volume_down.applescript`
-- `src/fine_volume_up.applescript`
+- `scripts/build_apps.sh`
 
 Then rebuild the apps:
 
@@ -106,20 +111,19 @@ Then rebuild the apps:
 
 ## Verify
 
-After assigning the apps in Logi Options+:
+After assigning the hotkeys in Logi Options+:
 
-- press volume up once and confirm the system volume increases by a small exact amount
-- press volume down once and confirm it decreases by the same amount
-- confirm there is no repeated beep from a failed keyboard shortcut
-- confirm a small custom volume HUD appears without stealing focus
+- press `Volume Down` once and confirm the volume decreases by the configured step
+- press `Volume Up` once and confirm the volume increases by the configured step
+- confirm there is no repeated beep from an unhandled shortcut
+- confirm a small custom volume HUD appears
 
 ## Troubleshooting
 
-- If Logi Options+ cannot find the apps, copy them to `/Applications`.
-- If the button still behaves like normal macOS volume, make sure the key is assigned to the helper app and not to the default media action.
-- If nothing happens, try launching the generated app manually from Finder once to confirm macOS allows it to run.
-- If the active window blinks when a helper runs, rebuild with the current version of this repo and replace the older helper apps. Older builds used AppleScript applets, which were more likely to disturb the frontmost app.
-- If you changed the scripts, rebuild before retesting.
+- If the hotkeys beep, the background helper is not running. Reload the LaunchAgent and confirm `Logi Fine Volume Hotkeys.app` is running.
+- If the volume still behaves like the normal large macOS step, make sure the MX Keys buttons are assigned to the keystrokes above rather than the default media action.
+- If nothing happens, launch `Logi Fine Volume Hotkeys.app` manually once from `~/Applications` and try again.
+- If you changed `STEP_SIZE`, rebuild and reinstall the generated app and LaunchAgent plist.
 
 ## Step-by-step guide
 
