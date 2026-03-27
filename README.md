@@ -2,8 +2,6 @@
 
 Fine-grained macOS volume control for Logitech MX Creative Console, MX Keys, Stream Deck, and other programmable controllers.
 
-The GitHub repo still uses the older `logi-fine-volume` name, but the helper apps are now generic because the same approach works well beyond Logitech hardware.
-
 This project builds four small macOS tools:
 
 - `Fine Volume Hotkeys.app`
