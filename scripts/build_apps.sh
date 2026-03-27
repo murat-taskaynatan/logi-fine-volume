@@ -4,23 +4,25 @@ set -eu
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
+RUNNER_BINARY="$ROOT_DIR/build/volume_runner"
 HUD_BINARY="$ROOT_DIR/build/volume_hud"
 
 mkdir -p "$DIST_DIR"
 mkdir -p "$ROOT_DIR/build"
 rm -rf "$DIST_DIR/Logi Fine Volume Down.app" "$DIST_DIR/Logi Fine Volume Up.app"
 
+/usr/bin/xcrun swiftc "$ROOT_DIR/src/volume_runner.swift" -o "$RUNNER_BINARY"
 /usr/bin/xcrun swiftc "$ROOT_DIR/src/volume_hud.swift" -o "$HUD_BINARY"
 
 create_app() {
   app_name="$1"
   bundle_id="$2"
-  script_name="$3"
+  step="$3"
   app_dir="$DIST_DIR/$app_name.app"
 
-  mkdir -p "$app_dir/Contents/MacOS" "$app_dir/Contents/Resources"
-  cp "$ROOT_DIR/src/$script_name" "$app_dir/Contents/Resources/$script_name"
-  cp "$HUD_BINARY" "$app_dir/Contents/MacOS/hud"
+  mkdir -p "$app_dir/Contents/MacOS"
+  cp "$RUNNER_BINARY" "$app_dir/Contents/MacOS/volume_runner"
+  cp "$HUD_BINARY" "$app_dir/Contents/MacOS/volume_hud"
 
   cat >"$app_dir/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -30,7 +32,7 @@ create_app() {
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>run</string>
+  <string>volume_runner</string>
   <key>CFBundleIdentifier</key>
   <string>$bundle_id</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -43,23 +45,15 @@ create_app() {
   <string>1.0</string>
   <key>CFBundleVersion</key>
   <string>1</string>
+  <key>LFVStep</key>
+  <integer>$step</integer>
   <key>LSBackgroundOnly</key>
   <true/>
 </dict>
 </plist>
 EOF
-
-  cat >"$app_dir/Contents/MacOS/run" <<EOF
-#!/bin/sh
-set -eu
-APP_DIR=\$(CDPATH= cd -- "\$(dirname -- "\$0")/.." && pwd)
-volume=\$(/usr/bin/osascript "\$APP_DIR/Resources/$script_name")
-"\$APP_DIR/MacOS/hud" "\$volume" >/dev/null 2>&1 &
-exit 0
-EOF
-
-  chmod +x "$app_dir/Contents/MacOS/run" "$app_dir/Contents/MacOS/hud"
+  chmod +x "$app_dir/Contents/MacOS/volume_runner" "$app_dir/Contents/MacOS/volume_hud"
 }
 
-create_app "Logi Fine Volume Down" "com.murat-taskaynatan.logi-fine-volume.down" "fine_volume_down.applescript"
-create_app "Logi Fine Volume Up" "com.murat-taskaynatan.logi-fine-volume.up" "fine_volume_up.applescript"
+create_app "Logi Fine Volume Down" "com.murat-taskaynatan.logi-fine-volume.down" "-2"
+create_app "Logi Fine Volume Up" "com.murat-taskaynatan.logi-fine-volume.up" "2"

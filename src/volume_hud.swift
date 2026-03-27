@@ -1,9 +1,18 @@
 import AppKit
 
-let volume = max(0, min(100, Int(CommandLine.arguments.dropFirst().first ?? "0") ?? 0))
+func clamp(_ value: Int) -> Int {
+  max(0, min(100, value))
+}
+
+let volume = clamp(Int(CommandLine.arguments.dropFirst().first ?? "0") ?? 0)
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+  private let volume: Int
   private var panel: NSPanel?
+
+  init(volume: Int) {
+    self.volume = volume
+  }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     let screenFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
@@ -62,7 +71,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     self.panel = panel
     panel.orderFrontRegardless()
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.38) {
       panel.close()
       NSApp.terminate(nil)
     }
@@ -70,7 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 let app = NSApplication.shared
-let delegate = AppDelegate()
+let delegate = AppDelegate(volume: volume)
 app.delegate = delegate
 app.setActivationPolicy(.accessory)
 app.run()
