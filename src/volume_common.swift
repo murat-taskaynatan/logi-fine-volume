@@ -13,6 +13,46 @@ let logFileURL = FileManager.default.homeDirectoryForCurrentUser
   .appendingPathComponent("Library")
   .appendingPathComponent("Logs")
   .appendingPathComponent("logi-fine-volume.log")
+let settingsSuiteName = "com.murat-taskaynatan.logi-fine-volume.shared"
+let hotkeysEnabledKey = "hotkeys_enabled"
+let overlayEnabledKey = "overlay_enabled"
+
+func sharedDefaults() -> UserDefaults {
+  UserDefaults(suiteName: settingsSuiteName) ?? .standard
+}
+
+func synchronizeSharedDefaults() {
+  CFPreferencesAppSynchronize(settingsSuiteName as CFString)
+}
+
+func registerSharedDefaults() {
+  sharedDefaults().register(defaults: [
+    hotkeysEnabledKey: true,
+    overlayEnabledKey: true,
+  ])
+}
+
+func fineVolumeHotkeysEnabled() -> Bool {
+  registerSharedDefaults()
+  return sharedDefaults().bool(forKey: hotkeysEnabledKey)
+}
+
+func setFineVolumeHotkeysEnabled(_ enabled: Bool) {
+  let defaults = sharedDefaults()
+  defaults.set(enabled, forKey: hotkeysEnabledKey)
+  synchronizeSharedDefaults()
+}
+
+func fineVolumeOverlayEnabled() -> Bool {
+  registerSharedDefaults()
+  return sharedDefaults().bool(forKey: overlayEnabledKey)
+}
+
+func setFineVolumeOverlayEnabled(_ enabled: Bool) {
+  let defaults = sharedDefaults()
+  defaults.set(enabled, forKey: overlayEnabledKey)
+  synchronizeSharedDefaults()
+}
 
 func currentTimestamp() -> String {
   ISO8601DateFormatter().string(from: Date())
@@ -118,6 +158,19 @@ func hudServiceIsRunning() -> Bool {
   return processExists(pid: pid)
 }
 
+func hideHUDService() {
+  guard
+    let pidText = try? String(contentsOf: hudPIDFile, encoding: .utf8)
+      .trimmingCharacters(in: .whitespacesAndNewlines),
+    let pid = Int32(pidText),
+    processExists(pid: pid)
+  else {
+    return
+  }
+
+  _ = kill(pid, SIGTERM)
+}
+
 func launchHUDService(from bundleURL: URL, initialVolume: Int) {
   let executableURL = bundleURL
     .appendingPathComponent("Contents")
@@ -142,6 +195,10 @@ func postHUDUpdate(volume: Int) {
 }
 
 func showHUD(from bundleURL: URL, volume: Int) {
+  guard fineVolumeOverlayEnabled() else {
+    return
+  }
+
   if hudServiceIsRunning() {
     postHUDUpdate(volume: volume)
   } else {

@@ -8,7 +8,7 @@ This project builds three tiny macOS helper apps:
 - `Logi Fine Volume Up.app`
 - `Logi Fine Volume Hotkeys.app`
 
-The recommended path is the hotkey helper. It runs in the background, listens for two Logi-assigned keystrokes, changes the system output volume by an exact step, and shows a small custom HUD.
+The recommended path is the hotkey helper. It runs in the background, shows a menu bar icon, listens for two Logi-assigned keystrokes, changes the system output volume by an exact step, and can show a small custom HUD.
 
 ## Why this exists
 
@@ -62,8 +62,6 @@ Each generated app contains:
 
 ## Install
 
-## Install
-
 Recommended install:
 
 ```sh
@@ -82,6 +80,17 @@ cp -R "dist/Logi Fine Volume Up.app" "$HOME/Applications/"
 ```
 
 The fallback app-launch path still exists for manual testing, but the hotkey helper is the recommended setup because it avoids the Logi Smart Actions instability where both buttons can collapse onto the same app after some uptime.
+
+## Menu Bar Controls
+
+After the hotkey helper starts, it appears in the macOS menu bar with a speaker icon.
+
+The menu provides:
+
+- `Enable Fine Volume` to turn the global hotkeys on or off
+- `Show Overlay` to enable or disable the custom volume HUD
+
+Those settings persist between launches because the helper stores them in a shared preferences domain.
 
 ## Configure Logi Options+
 
@@ -117,12 +126,15 @@ After assigning the hotkeys in Logi Options+:
 - press `Volume Up` once and confirm the volume increases by the configured step
 - confirm there is no repeated beep from an unhandled shortcut
 - confirm a small custom volume HUD appears
+- confirm the helper shows a menu bar icon
+- confirm the menu bar toggles can disable hotkeys and the overlay independently
 
 ## Troubleshooting
 
 - If the hotkeys beep, the background helper is not running. Reload the LaunchAgent and confirm `Logi Fine Volume Hotkeys.app` is running.
 - If the volume still behaves like the normal large macOS step, make sure the MX Keys buttons are assigned to the keystrokes above rather than the default media action.
 - If nothing happens, launch `Logi Fine Volume Hotkeys.app` manually once from `~/Applications` and try again.
+- If the overlay does not appear, make sure `Show Overlay` is enabled from the menu bar icon.
 - If you changed `STEP_SIZE`, rebuild and reinstall the generated app and LaunchAgent plist.
 
 ## Step-by-step guide

@@ -64,6 +64,11 @@ final class HotkeyController {
   }
 
   func handle(event: EventRef) {
+    guard fineVolumeHotkeysEnabled() else {
+      appendLog("hotkey_ignored bundle=\(bundleIdentifier) reason=disabled")
+      return
+    }
+
     var hotKeyID = EventHotKeyID()
     let status = GetEventParameter(
       event,
@@ -103,11 +108,100 @@ final class HotkeyController {
   }
 }
 
+final class StatusBarController: NSObject, NSMenuDelegate {
+  private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+  private let menu = NSMenu()
+  private let titleItem = NSMenuItem(title: "Logi Fine Volume", action: nil, keyEquivalent: "")
+  private let hotkeysItem = NSMenuItem(title: "Enable Fine Volume", action: #selector(toggleHotkeys), keyEquivalent: "")
+  private let overlayItem = NSMenuItem(title: "Show Overlay", action: #selector(toggleOverlay), keyEquivalent: "")
+  private let shortcutsItem = NSMenuItem(title: "Shortcuts: Ctrl+Opt+Cmd+J/K", action: nil, keyEquivalent: "")
+
+  override init() {
+    super.init()
+
+    titleItem.isEnabled = false
+    shortcutsItem.isEnabled = false
+    hotkeysItem.target = self
+    overlayItem.target = self
+
+    menu.delegate = self
+    menu.addItem(titleItem)
+    menu.addItem(NSMenuItem.separator())
+    menu.addItem(hotkeysItem)
+    menu.addItem(overlayItem)
+    menu.addItem(NSMenuItem.separator())
+    menu.addItem(shortcutsItem)
+
+    statusItem.menu = menu
+    refresh()
+  }
+
+  func refresh() {
+    hotkeysItem.state = fineVolumeHotkeysEnabled() ? .on : .off
+    overlayItem.state = fineVolumeOverlayEnabled() ? .on : .off
+    updateStatusButton()
+  }
+
+  func menuWillOpen(_ menu: NSMenu) {
+    refresh()
+  }
+
+  private func updateStatusButton() {
+    guard let button = statusItem.button else {
+      return
+    }
+
+    let symbolName: String
+    if !fineVolumeHotkeysEnabled() {
+      symbolName = "speaker.slash.fill"
+    } else if fineVolumeOverlayEnabled() {
+      symbolName = "speaker.wave.2.fill"
+    } else {
+      symbolName = "speaker.wave.2"
+    }
+
+    if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Logi Fine Volume") {
+      image.isTemplate = true
+      button.image = image
+      button.title = ""
+    } else {
+      button.image = nil
+      button.title = fineVolumeHotkeysEnabled() ? "LFV" : "LFV Off"
+    }
+
+    if fineVolumeHotkeysEnabled() {
+      button.toolTip = fineVolumeOverlayEnabled() ? "Logi Fine Volume: on" : "Logi Fine Volume: overlay off"
+    } else {
+      button.toolTip = "Logi Fine Volume: disabled"
+    }
+  }
+
+  @objc private func toggleHotkeys() {
+    let enabled = !fineVolumeHotkeysEnabled()
+    setFineVolumeHotkeysEnabled(enabled)
+    appendLog("settings hotkeys_enabled=\(enabled)")
+    refresh()
+  }
+
+  @objc private func toggleOverlay() {
+    let enabled = !fineVolumeOverlayEnabled()
+    setFineVolumeOverlayEnabled(enabled)
+    if !enabled {
+      hideHUDService()
+    }
+    appendLog("settings overlay_enabled=\(enabled)")
+    refresh()
+  }
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private let controller = HotkeyController()
+  private var statusBarController: StatusBarController?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    registerSharedDefaults()
     controller.start()
+    statusBarController = StatusBarController()
   }
 }
 

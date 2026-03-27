@@ -25,6 +25,11 @@ launchctl kickstart -k "gui/$(id -u)/com.murat-taskaynatan.logi-fine-volume.hotk
 7. Change the `Volume Up` button action to `Keystroke Assignment`.
 8. Record `Control + Option + Command + K`.
 
+After the helper launches, use its menu bar icon to:
+
+- enable or disable fine-volume hotkeys
+- enable or disable the custom overlay
+
 ## What the helper does
 
 - `Control + Option + Command + J` lowers output volume by the configured step
@@ -33,6 +38,7 @@ launchctl kickstart -k "gui/$(id -u)/com.murat-taskaynatan.logi-fine-volume.hotk
 - the helper unmutes output when adjusting volume
 - the helper shows a small custom volume HUD because the built-in macOS media overlay is not available through this workaround
 - the helper runs at login through a user LaunchAgent
+- the helper shows a menu bar icon with persistent toggles for hotkeys and overlay display
 
 ## Change the amount
 
@@ -53,4 +59,5 @@ Then rebuild:
 - If a key beeps, the hotkey helper is not running or the button is assigned to the wrong keystroke.
 - If the volume changes by the normal large step, the key is still mapped to Logitech's default media control.
 - If nothing happens, open `~/Applications/Logi Fine Volume Hotkeys.app` manually once and try again.
+- If the overlay does not appear, check the helper's menu bar icon and make sure `Show Overlay` is enabled.
 - If you change `STEP_SIZE`, rebuild and reinstall both the app and the LaunchAgent plist.
