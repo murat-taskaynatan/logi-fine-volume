@@ -18,10 +18,11 @@ create_app() {
   app_name="$1"
   bundle_id="$2"
   step="$3"
+  runner_name="$4"
   app_dir="$DIST_DIR/$app_name.app"
 
   mkdir -p "$app_dir/Contents/MacOS"
-  cp "$RUNNER_BINARY" "$app_dir/Contents/MacOS/volume_runner"
+  cp "$RUNNER_BINARY" "$app_dir/Contents/MacOS/$runner_name"
   cp "$HUD_BINARY" "$app_dir/Contents/MacOS/volume_hud"
 
   cat >"$app_dir/Contents/Info.plist" <<EOF
@@ -32,7 +33,7 @@ create_app() {
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>volume_runner</string>
+  <string>$runner_name</string>
   <key>CFBundleIdentifier</key>
   <string>$bundle_id</string>
   <key>CFBundleInfoDictionaryVersion</key>
@@ -52,8 +53,8 @@ create_app() {
 </dict>
 </plist>
 EOF
-  chmod +x "$app_dir/Contents/MacOS/volume_runner" "$app_dir/Contents/MacOS/volume_hud"
+  chmod +x "$app_dir/Contents/MacOS/$runner_name" "$app_dir/Contents/MacOS/volume_hud"
 }
 
-create_app "Logi Fine Volume Down" "com.murat-taskaynatan.logi-fine-volume.down" "-2"
-create_app "Logi Fine Volume Up" "com.murat-taskaynatan.logi-fine-volume.up" "2"
+create_app "Logi Fine Volume Down" "com.murat-taskaynatan.logi-fine-volume.down" "-2" "volume_runner_down"
+create_app "Logi Fine Volume Up" "com.murat-taskaynatan.logi-fine-volume.up" "2" "volume_runner_up"
