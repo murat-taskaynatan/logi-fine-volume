@@ -22,8 +22,6 @@ This repo avoids that path by using a local background helper instead of Logitec
 
 The generated helper apps are native Swift bundles. They do not use the AppleScript applet runtime, which helps avoid the visible blink and focus disturbance that can happen when launching hidden AppleScript apps repeatedly.
 
-## Why This Helper Is Needed
-
 If you are using something like an MX Creative Console, MX Keys, or another Logitech device that is managed by Logi Options+, the important detail is this:
 
 your button press usually does **not** go straight from the keyboard into macOS as a simple raw key that other tools can reliably remap.
