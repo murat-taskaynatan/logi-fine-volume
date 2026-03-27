@@ -11,6 +11,7 @@ let hudNotificationName = Notification.Name("com.murat-taskaynatan.logi-fine-vol
 let hudPIDFile = URL(fileURLWithPath: NSTemporaryDirectory())
   .appendingPathComponent("com.murat-taskaynatan.logi-fine-volume.hud.pid")
 let hudHideDelay: TimeInterval = 1.8
+let hudPanelSize = NSSize(width: 300, height: 54)
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private let initialVolume: Int?
@@ -89,8 +90,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private func panelOrigin(for panelSize: NSSize) -> NSPoint {
     let screenFrame = screenFrame()
     return NSPoint(
-      x: screenFrame.midX - (panelSize.width / 2),
-      y: screenFrame.minY + 72
+      x: screenFrame.maxX - panelSize.width - 24,
+      y: screenFrame.maxY - panelSize.height - 24
     )
   }
 
@@ -99,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
-    let panelSize = NSSize(width: 220, height: 88)
+    let panelSize = hudPanelSize
     let panel = NSPanel(
       contentRect: NSRect(origin: panelOrigin(for: panelSize), size: panelSize),
       styleMask: [.borderless, .nonactivatingPanel],
@@ -122,27 +123,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let contentView = NSView(frame: NSRect(origin: .zero, size: panelSize))
     contentView.wantsLayer = true
     contentView.layer?.backgroundColor = NSColor(calibratedWhite: 0.08, alpha: 0.86).cgColor
-    contentView.layer?.cornerRadius = 18
+    contentView.layer?.cornerRadius = 14
     contentView.layer?.masksToBounds = true
     panel.contentView = contentView
 
     let titleField = NSTextField(labelWithString: "")
-    titleField.font = .systemFont(ofSize: 26, weight: .semibold)
+    titleField.font = .systemFont(ofSize: 16, weight: .semibold)
     titleField.textColor = .white
-    titleField.alignment = .center
-    titleField.frame = NSRect(x: 20, y: 44, width: 180, height: 30)
+    titleField.alignment = .left
+    titleField.frame = NSRect(x: 16, y: 18, width: 96, height: 18)
     contentView.addSubview(titleField)
 
-    let track = NSView(frame: NSRect(x: 22, y: 22, width: 176, height: 12))
+    let track = NSView(frame: NSRect(x: 112, y: 21, width: 172, height: 10))
     track.wantsLayer = true
     track.layer?.backgroundColor = NSColor(calibratedWhite: 1.0, alpha: 0.16).cgColor
-    track.layer?.cornerRadius = 6
+    track.layer?.cornerRadius = 5
     contentView.addSubview(track)
 
-    let fillView = NSView(frame: NSRect(x: 0, y: 0, width: 12, height: 12))
+    let fillView = NSView(frame: NSRect(x: 0, y: 0, width: 10, height: 10))
     fillView.wantsLayer = true
     fillView.layer?.backgroundColor = NSColor.white.cgColor
-    fillView.layer?.cornerRadius = 6
+    fillView.layer?.cornerRadius = 5
     track.addSubview(fillView)
 
     self.panel = panel
@@ -157,7 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     CATransaction.begin()
     CATransaction.setDisableActions(true)
-    let fillWidth = max(12.0, floor(176.0 * CGFloat(volume) / 100.0))
+    let fillWidth = max(10.0, floor(172.0 * CGFloat(volume) / 100.0))
     fillView?.frame.size.width = fillWidth
     CATransaction.commit()
   }
