@@ -16,7 +16,7 @@ Some Logitech keyboards on macOS, including MX-series devices, send media keys t
 
 - normal media volume works
 - Karabiner remaps may not trigger
-- custom shortcut fallbacks may beep instead of being handled
+- custom shortcut fallbacks may trigger the macOS alert sound instead of being handled
 
 This repo avoids that path by using a local background helper instead of Logitech's normal media-key flow.
 
@@ -49,7 +49,7 @@ Without a listener:
 
 - the shortcut is just an unused key combo
 - macOS treats it like an unhandled shortcut
-- you often hear a beep
+- you often get the macOS alert sound
 - volume does not change
 
 So the keystroke assignment is only half of the solution. This repo provides the other half: the small background helper that listens for the shortcut and then changes the volume directly.
@@ -188,14 +188,14 @@ After assigning the hotkeys in Logi Options+:
 
 - press `Volume Down` once and confirm the volume decreases by the configured step
 - press `Volume Up` once and confirm the volume increases by the configured step
-- confirm there is no repeated beep from an unhandled shortcut
+- confirm there is no repeated macOS alert sound from an unhandled shortcut
 - confirm a small custom volume HUD appears
 - confirm the helper shows a menu bar icon
 - confirm the menu bar toggles can disable hotkeys and the overlay independently
 
 ## Troubleshooting
 
-- If the hotkeys beep, the background helper is not running. Reload the LaunchAgent and confirm `Logi Fine Volume Hotkeys.app` is running.
+- If the hotkeys trigger the macOS alert sound, the background helper is not running. Reload the LaunchAgent and confirm `Logi Fine Volume Hotkeys.app` is running.
 - If the volume still behaves like the normal large macOS step, make sure the MX Keys buttons are assigned to the keystrokes above rather than the default media action.
 - If nothing happens, launch `Logi Fine Volume Hotkeys.app` manually once from `~/Applications` and try again.
 - If the overlay does not appear, make sure `Show Overlay` is enabled from the menu bar icon.

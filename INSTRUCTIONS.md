@@ -63,7 +63,7 @@ Then rebuild:
 
 ## Troubleshooting
 
-- If a key beeps, the hotkey helper is not running or the button is assigned to the wrong keystroke.
+- If a key triggers the macOS alert sound, the hotkey helper is not running or the button is assigned to the wrong keystroke.
 - If the volume changes by the normal large step, the key is still mapped to Logitech's default media control.
 - If nothing happens, open `~/Applications/Logi Fine Volume Hotkeys.app` manually once and try again.
 - If the overlay does not appear, check the helper's menu bar icon and make sure `Show Overlay` is enabled.
